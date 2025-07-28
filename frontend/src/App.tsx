@@ -1,0 +1,33 @@
+
+import { useState } from 'react';
+import './App.css'
+import { getDrawingsFrompost } from './services/api';
+import { Canvas } from './components/DrawingCanvas';
+import type { DrawingCommand } from './types/drawing';
+
+function App() {
+  const [prompt, setPrompt] = useState('');
+  const [command, setCommand] = useState<DrawingCommand[]>([]);
+
+  const handleSubmit = async ()=>{
+    try {
+      const result = await getDrawingsFrompost(prompt);
+      setCommand(result);
+    } catch (error) {
+      console.error('Error generating drawing:', error);
+      alert('error in generating drawing: ');
+    }
+  }
+
+  return (
+   <div>
+      <h1>בוט ציור</h1>
+      <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="כתוב כאן פרומפט..." />
+      <button onClick={handleSubmit}>שלח</button>
+      {/* <DrawingCanvas commands={command} /> */}
+      <Canvas commands={command} width={600} height={400} />
+    </div>
+  )
+}
+
+export default App
