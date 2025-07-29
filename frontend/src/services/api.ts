@@ -1,10 +1,8 @@
 import { axiosInstance } from "./axios";
 
 export async function getDrawingsFrompost(prompt: string) {
-     
-    const res=await axiosInstance.post('api/drawing/generate', { prompt });
+    const res = await axiosInstance.post('api/drawing/generate', { Prompt: prompt });
     console.log('Response from server:', res.data);
-    console.log('Response data:', res.data);
     if (res.status !== 200) {
         throw new Error("Failed to generate drawing");
     }
