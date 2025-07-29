@@ -67,17 +67,17 @@ public class DrawingController : ControllerBase
         var jsonBody = JsonSerializer.Serialize(body, new JsonSerializerOptions { WriteIndented = false });
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-        Console.WriteLine($"גוף בקשת Gemini: {jsonBody}"); // לצורך דיבוג
+        Console.WriteLine($"request body Gemini: {jsonBody}"); // לצורך דיבוג
 
         var response = await httpClient.PostAsync(geminiApiUrl, content);
         var json = await response.Content.ReadAsStringAsync();
 
-        Console.WriteLine($"תגובת Gemini: {json}"); // לצורך דיבוג
+        Console.WriteLine($"response Gemini: {json}"); // לצורך דיבוג
 
         if (!response.IsSuccessStatusCode)
         {
             // רשום את השגיאה או החזר הודעת שגיאה ספציפית יותר מ-Gemini API
-            return StatusCode((int)response.StatusCode, $"שגיאה מ-Gemini API: {json}");
+            return StatusCode((int)response.StatusCode, $" error from-Gemini API: {json}");
         }
 
         // נתח את תגובת Gemini
@@ -89,7 +89,7 @@ public class DrawingController : ControllerBase
             candidates.ValueKind != JsonValueKind.Array ||
             candidates.GetArrayLength() == 0)
         {
-            return BadRequest("לא נמצאו מועמדים בתגובת Gemini.");
+            return BadRequest("no candidates found in the response from Gemini.");
         }
 
         var firstCandidate = candidates[0];
@@ -98,7 +98,7 @@ public class DrawingController : ControllerBase
             parts.ValueKind != JsonValueKind.Array ||
             parts.GetArrayLength() == 0)
         {
-            return BadRequest("לא ניתן למצוא חלקי תוכן בתגובת Gemini.");
+            return BadRequest("no content parts found in the response from Gemini.");
         }
 
         // תוכן הטקסט בפועל נמצא במאפיין "text" של החלק הראשון
@@ -115,7 +115,7 @@ public class DrawingController : ControllerBase
             .Replace("צהוב", "yellow");
         if (string.IsNullOrEmpty(generatedText))
         {
-            return BadRequest("התוכן שנוצר ריק.");
+            return BadRequest("the generated content is empty.");
         }
 
         try
@@ -135,17 +135,17 @@ public class DrawingController : ControllerBase
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"שגיאת ניתוח JSON: {ex.Message}");
-                Console.WriteLine($"ניסיון לנתח (אחרי ניקוי): {cleanedJson}");
-                return BadRequest("לא ניתן לנתח פקודות ציור מהתגובה של Gemini (גם אחרי ניקוי). ודא שהמודל מחזיר JSON חוקי.");
+                Console.WriteLine($" error JSON: {ex.Message}");
+                Console.WriteLine($"try to parse (after cleaning): {cleanedJson}");
+                return BadRequest("can not parse drawing commands from Gemini response. The generated text may not be valid JSON.");
             }
 
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"שגיאת ניתוח JSON: {ex.Message}");
-            Console.WriteLine($"ניסיון לנתח: {generatedText}");
-            return BadRequest("לא ניתן לנתח פקודות ציור מהתגובה של Gemini. הטקסט שנוצר עשוי להיות JSON לא חוקי.");
+            Console.WriteLine($" error JSON: {ex.Message}");
+            Console.WriteLine($"try to parse: {generatedText}");
+            return BadRequest("can not parse drawing commands from Gemini response. The generated text may not be valid JSON.");
         }
     }
 }
