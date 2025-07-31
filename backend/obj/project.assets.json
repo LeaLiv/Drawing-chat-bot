@@ -81,11 +81,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\SkillZ-Home-ex\\backend\\backend.csproj",
+      "projectUniqueName": "D:\\SkillZ-Home-ex\\backend\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\SkillZ-Home-ex\\backend\\backend.csproj",
+      "projectPath": "D:\\SkillZ-Home-ex\\backend\\backend.csproj",
       "packagesPath": "C:\\Users\\leahl\\.nuget\\packages\\",
-      "outputPath": "C:\\SkillZ-Home-ex\\backend\\obj\\",
+      "outputPath": "D:\\SkillZ-Home-ex\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
