@@ -1,39 +1,58 @@
 // src/types/drawing.ts
 
-// מתאר נקודה עם קואורדינטות X ו-Y
+// Represents a point with X and Y coordinates
 interface Point {
   x: number;
   y: number;
 }
 
-// מתאר צורת ציור בסיסית (רכיב)
+// 🔽 THIS IS THE CORRECTED INTERFACE 🔽
+// It now includes all optional properties for every shape type.
 export interface DrawingComponent {
   shape: 'rectangle' | 'circle' | 'line' | 'triangle' | 'ellipse';
   color: string;
+  filled?: boolean;
+  
+  // Properties for rectangle & ellipse
   x?: number;
   y?: number;
   width?: number;
   height?: number;
-  cx?: number; // מרכז X לעיגול
-  cy?: number; // מרכז Y לעיגול
+
+  // Properties for circle
+  cx?: number;
+  cy?: number;
   radius?: number;
-  x1?: number; // נקודת התחלה לקו
+
+  // Properties for line
+  x1?: number;
   y1?: number;
-  x2?: number; // נקודת סוף לקו
+  x2?: number;
   y2?: number;
-  points?: Point[]; // מערך נקודות למשולש
-  filled?: boolean; // אם למלא את הצורה בצבע
+  
+  // Properties for triangle
+  points?: Point[];
 }
 
-// מתאר אובייקט לוגי, כמו "בית" או "שמש"
+// A logical object in the scene, like a "house"
 export interface LogicalObject {
   type: string;
   components: DrawingComponent[];
 }
 
-// מתאר את כל מבנה הנתונים שמתקבל מהשרת
+// The complete drawing data object from the server
 export interface DrawingData {
   canvasWidth: number;
   canvasHeight: number;
   objects: LogicalObject[];
+}
+
+// A complete, named drawing with its own history
+export interface Drawing {
+  id: string;
+  name: string;
+  history: DrawingData[][];
+  historyIndex: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

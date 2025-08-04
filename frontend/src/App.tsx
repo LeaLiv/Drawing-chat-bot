@@ -1,13 +1,13 @@
 // src/App.tsx
-
 import './App.css';
 import DrawingBot from './components/DrawingBot';
+import { AuthProvider } from './context/AuthContext'; // ייבוא הספק
 
 function App() {
   return (
-    // The main App component now only needs to render the DrawingBot.
-    // All the logic is handled inside DrawingBot.
-    <DrawingBot />
+    <AuthProvider>
+      <DrawingBot />
+    </AuthProvider>
   );
 }
 

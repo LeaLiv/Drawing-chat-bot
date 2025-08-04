@@ -7,8 +7,9 @@ interface CanvasProps {
   drawingData: DrawingData | null;
 }
 
-// פונקציית עזר לציור צורה בודדת
 const drawComponent = (ctx: CanvasRenderingContext2D, component: DrawingComponent) => {
+    if (!component.shape || !component.color) return; 
+
     ctx.strokeStyle = component.color;
     ctx.fillStyle = component.color;
     ctx.lineWidth = 2;
@@ -61,28 +62,27 @@ export const Canvas: React.FC<CanvasProps> = ({ drawingData }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // קובעים את גודל הקנבס. אם אין נתונים, משתמשים בברירת מחדל
     const width = drawingData?.canvasWidth ?? 500;
     const height = drawingData?.canvasHeight ?? 500;
     canvas.width = width;
     canvas.height = height;
     
-    ctx.clearRect(0, 0, width, height); // ניקוי הקנבס
+    ctx.clearRect(0, 0, width, height); 
 
-    if (!drawingData) {
-      // אם אין נתונים, אפשר לצייר משהו שמסביר את המצב
+    if (!drawingData || !Array.isArray(drawingData.objects)) {
       ctx.fillStyle = "lightgray";
       ctx.font = "16px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("הקנבס מוכן... מה תרצה/י לצייר?", width / 2, height / 2);
+      ctx.fillText("הקנבס מוכן...", width / 2, height / 2);
       return;
     }
     
-    // לולאות מקוננות כדי לעבור על כל הרכיבים
     drawingData.objects.forEach(logicalObject => {
-      logicalObject.components.forEach(component => {
-        drawComponent(ctx, component);
-      });
+      if (logicalObject.components) {
+          logicalObject.components.forEach(component => {
+              drawComponent(ctx, component);
+          });
+      }
     });
 
   }, [drawingData]);
