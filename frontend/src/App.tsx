@@ -1,61 +1,42 @@
 import React, { useState } from 'react';
-import { Canvas } from './components/DrawingCanvas';
+import { Canvas } from './components/Canvas';
+import { DrawingControls } from './components/DrawingControls';
+import { ChatInterface } from './components/ChatInterface';
+import { useDrawingState } from './hooks/useDrawingState';
 import { LLMService } from './services/llmService';
-import './App.css';
-import type { DrawingCommand } from './types/drawing';
+import { Palette } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
   type: 'user' | 'bot';
   content: string;
   timestamp: Date;
+  commandCount?: number;
+}
+
+interface HistoryItem {
+  prompt: string;
+  timestamp: Date;
+  commandCount: number;
 }
 
 function App() {
-  const [drawings, setDrawings] = useState<{id: string, commands: DrawingCommand[]}[]>([{ id: '1', commands: [] }]);
-  const [currentDrawingId, setCurrentDrawingId] = useState('1');
-  
-  const currentDrawing = drawings.find(d => d.id === currentDrawingId) || null;
-
-  const addCommands = (commands: DrawingCommand[]) => {
-    setDrawings(prev => prev.map(drawing => 
-      drawing.id === currentDrawingId 
-        ? { ...drawing, commands }
-        : drawing
-    ));
-  };
-  
-  const undo = () => {
-    setDrawings(prev => prev.map(drawing => 
-      drawing.id === currentDrawingId 
-        ? { ...drawing, commands: drawing.commands.slice(0, -1) }
-        : drawing
-    ));
-  };
-  
-  const clearDrawing = () => {
-    setDrawings(prev => prev.map(drawing => 
-      drawing.id === currentDrawingId 
-        ? { ...drawing, commands: [] }
-        : drawing
-    ));
-  };
-  
-  const createNewDrawing = () => {
-    const newId = Date.now().toString();
-    setDrawings(prev => [...prev, { id: newId, commands: [] }]);
-    setCurrentDrawingId(newId);
-  };
-  
-  const canUndo = currentDrawing ? currentDrawing.commands.length > 0 : false;
+  const {
+    currentDrawing,
+    drawings,
+    addCommands,
+    undo,
+    clearDrawing,
+    createNewDrawing,
+    selectDrawing,
+    canUndo
+  } = useDrawingState();
 
   const [isLoading, setIsLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [prompt, setPrompt] = useState('');
 
-  const handlePromptSubmit = async () => {
-    if (!prompt.trim() || isLoading) return;
-
+  const handlePromptSubmit = async (prompt: string) => {
+    // Add user message
     const userMessage: ChatMessage = {
       id: Math.random().toString(36).substr(2, 9),
       type: 'user',
@@ -69,149 +50,101 @@ function App() {
       const commands = await LLMService.parsePrompt(prompt);
       addCommands(commands);
       
+      // Add bot response
       const botMessage: ChatMessage = {
         id: Math.random().toString(36).substr(2, 9),
         type: 'bot',
-        content: `ציור נוצר בהצלחה עם ${commands.length} אלמנטים`,
-        timestamp: new Date()
+        content: `ציירתי ${commands.length} אלמנטים בהתאם לבקשתך!`,
+        timestamp: new Date(),
+        commandCount: commands.length
       };
       setChatMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error processing prompt:', error);
+      // Add error message
       const errorMessage: ChatMessage = {
         id: Math.random().toString(36).substr(2, 9),
         type: 'bot',
-        content: 'שגיאה בעיבוד הבקשה',
+        content: 'מצטער, אירעה שגיאה בעיבוד הבקשה. נסה שוב.',
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      setPrompt('');
     }
   };
 
-  const handleDrawingSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const index = parseInt(e.target.value.replace('drawing-', ''));
+  const handleDrawingSelect = (selectionValue: string) => {
+    const index = parseInt(selectionValue.replace('drawing-', ''));
     const drawing = drawings[index];
     if (drawing) {
-      setCurrentDrawingId(drawing.id);
+      selectDrawing(drawing.id);
     }
   };
 
-  const drawingNames = drawings.map((d, index) => `Drawing #${index + 1}`);
+  const handleSave = () => {
+    // In a real app, this would save to a backend
+    console.log('Saving drawing:', currentDrawing);
+    alert('הציור נשמר בהצלחה!');
+  };
+
+  const clearChat = () => {
+    setChatMessages([]);
+  };
+
+  const drawingNames = drawings.map((d, index) => `ציור #${index + 1}`);
   const currentDrawingIndex = currentDrawing ? drawings.findIndex(d => d.id === currentDrawing.id) : 0;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      {/* Top Controls */}
-      <div className="bg-white border-b p-3 flex items-center gap-2">
-        <select
-          value={`drawing-${currentDrawingIndex}`}
-          onChange={handleDrawingSelect}
-          className="px-3 py-1 border rounded"
-        >
-          {drawingNames.map((name, index) => (
-            <option key={`drawing-${index}`} value={`drawing-${index}`}>
-              {name}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={createNewDrawing}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          + New Drawing
-        </button>
-        <button
-          onClick={() => handlePromptSubmit()}
-          disabled={!prompt.trim() || isLoading}
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
-        >
-          Send
-        </button>
-        <button
-          onClick={undo}
-          disabled={!canUndo}
-          className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:bg-gray-300"
-        >
-          Undo
-        </button>
-        <button
-          onClick={clearDrawing}
-          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-        >
-          Clear
-        </button>
-        <button
-          onClick={() => alert('הציור נשמר!')}
-          className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
-        >
-          Save
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex">
-        {/* Left Chat Panel */}
-        <div className="w-1/3 bg-white border-r flex flex-col">
-          <div className="p-3 border-b bg-gray-50">
-            <h3 className="font-semibold">צ'אט עם הבוט</h3>
+    <div className="min-h-screen bg-gray-50" dir="rtl">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Palette className="text-blue-500" size={32} />
+            <h1 className="text-2xl font-bold text-gray-900">בוט ציור בשפה טבעית</h1>
           </div>
-          
-          <div className="flex-1 p-3 overflow-y-auto space-y-2">
-            {chatMessages.map((message) => (
-              <div
-                key={message.id}
-                className={`p-2 rounded max-w-xs ${
-                  message.type === 'user'
-                    ? 'bg-green-100 ml-auto text-right'
-                    : 'bg-gray-100'
-                }`}
-              >
-                <div className="text-sm">{message.content}</div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="bg-gray-100 p-2 rounded max-w-xs">
-                <div className="text-sm">מעבד...</div>
-              </div>
-            )}
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Sidebar - Controls and Input */}
+          <div className="lg:col-span-1 order-2 lg:order-1 h-96 lg:h-[600px]">
+            <ChatInterface 
+              onSubmit={handlePromptSubmit} 
+              isLoading={isLoading}
+              messages={chatMessages}
+            />
           </div>
 
-          <div className="p-3 border-t">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePromptSubmit()}
-                placeholder="מה לצייר?"
-                className="flex-1 px-3 py-2 border rounded"
-                disabled={isLoading}
+          {/* Main Canvas Area */}
+          <div className="lg:col-span-3 space-y-4 order-1 lg:order-2">
+            <DrawingControls
+              selectedDrawingId={`drawing-${currentDrawingIndex}`}
+              drawingNames={drawingNames}
+              onDrawingSelect={handleDrawingSelect}
+              onNewDrawing={createNewDrawing}
+              onSave={handleSave}
+              onUndo={undo}
+              onClear={clearDrawing}
+              canUndo={canUndo}
+            />
+
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <Canvas
+                commands={currentDrawing?.commands || []}
+                width={800}
+                height={400}
               />
-              <button
-                onClick={handlePromptSubmit}
-                disabled={!prompt.trim() || isLoading}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300"
-              >
-                שלח
-              </button>
             </div>
+
           </div>
         </div>
+      </main>
 
-        {/* Right Canvas Panel */}
-        <div className="flex-1 bg-white p-6">
-          <Canvas
-            commands={currentDrawing?.commands || []}
-            width={800}
-            height={500}
-          />
-        </div>
-      </div>
+     
     </div>
   );
 }
 
-export default App
+export default App;

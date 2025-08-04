@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Canvas } from "./Canvas";
 import type { DrawingCommand, Point } from "../types/drawing";
-import { Canvas } from "./DrawingCanvas";
 
 // פונקציה שמתרגמת נתונים מהשרת לפורמט הנכון
 const convertServerDataToCommands = (serverData: any[]): DrawingCommand[] => {
