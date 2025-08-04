@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Net.Http.Headers;
-using System.Text; // נדרש עבור StringContent
+using System.Text;
 
 [ApiController]
-
 [Route("api/[controller]")]
 public class DrawingController : ControllerBase
 {
@@ -20,133 +18,125 @@ public class DrawingController : ControllerBase
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateDrawing([FromBody] PromptRequest request)
     {
-        // קבל את מפתח ה-API של Gemini מהקונפיגורציה.
-        // ודא שהוספת אותו ל-appsettings.json או לסודות משתמש (לדוגמה, "GoogleAI:ApiKey").
         var apiKey = _configuration["GoogleAI:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
         {
-            return StatusCode(500, "GoogleAI:ApiKey לא הוגדר.");
+            return StatusCode(500, "GoogleAI:ApiKey is not configured.");
         }
 
         var httpClient = _httpClientFactory.CreateClient();
+        // מודל לדוגמה. ודא שאתה משתמש במודל העדכני והמתאים ביותר לצרכיך.
+        var geminiApiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={apiKey}";
 
-        // מפתח ה-API של Gemini מועבר בדרך כלל כפרמטר שאילתה או בכותרת מותאמת אישית,
-        // ולא כ-Bearer token בכותרת Authorization לשימוש בסיסי.
-        // לצורך פשטות בקריאות HTTP ישירות, נוסיף אותו ל-URL.
-        // נקודת הקצה משתמשת ב-'gemini-pro' כמודל לדוגמה. ייתכן שתשתמש ב-'gemini-1.5-pro-latest' וכו'.
-        var geminiApiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b-latest:generateContent?key={apiKey}";
-
-        // גוף הבקשה עבור Gemini שונה מ-OpenAI.
-        // הוא משתמש ב-'contents' עם 'parts' ו-'text'.
-        // אין מקבילה ישירה לתפקיד "system" בנקודת הקצה generateContent;
-        // בדרך כלל משלבים הוראות מערכת בהודעת המשתמש או משתמשים בדוגמאות Few-shot.
-        // עבור דוגמה זו, נשלב את הוראת המערכת עם בקשת המשתמש.
-        // var combinedPrompt = $"אתה בוט ציור. החזר רק מערך של פקודות ציור בפורמט JSON (עיגול, מלבן, קו), כל אחת עם צבע ומאפיינים. הנה בקשת המשתמש: {request.Prompt}";
-        // שלב 1: תרגום פרומפט לעברית לאנגלית
-        var translatedPrompt = $"Translate the following Hebrew instruction to English and convert it into drawing commands as JSON array with shape, color and dimensions only. Return only the raw JSON array: {request.Prompt}";
+        // --- הנדסת הפרומפט המשופרת ---
+        var systemInstruction = BuildAdvancedPrompt(request.Prompt);
 
         var body = new
         {
             contents = new[]
             {
-                new {
-                    role = "user",
-                    parts = new[] {
-                        new { text = translatedPrompt }
-                    }
-                }
+                new { parts = new[] { new { text = systemInstruction } } }
             },
-            // המקבילה של Gemini ל-temperature היא 'temperature'
             generationConfig = new
             {
-                temperature = 0.3
+                temperature = 0.2, // טמפרטורה נמוכה יותר למבנה צפוי
+                // --- זו התוספת החשובה ביותר: אכיפת פלט JSON ---
+                responseMimeType = "application/json" 
             }
         };
 
-        // המר את גוף הבקשה ל-JSON
-        var jsonBody = JsonSerializer.Serialize(body, new JsonSerializerOptions { WriteIndented = false });
+        var jsonBody = JsonSerializer.Serialize(body);
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-        Console.WriteLine($"גוף בקשת Gemini: {jsonBody}"); // לצורך דיבוג
-
         var response = await httpClient.PostAsync(geminiApiUrl, content);
-        var json = await response.Content.ReadAsStringAsync();
-
-        Console.WriteLine($"תגובת Gemini: {json}"); // לצורך דיבוג
+        var responseJson = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            // רשום את השגיאה או החזר הודעת שגיאה ספציפית יותר מ-Gemini API
-            return StatusCode((int)response.StatusCode, $"שגיאה מ-Gemini API: {json}");
+            // החזרת השגיאה המלאה מ-Gemini עוזרת מאוד לדיבוג
+            return StatusCode((int)response.StatusCode, $"Error from Gemini API: {responseJson}");
         }
 
-        // נתח את תגובת Gemini
-        using var doc = JsonDocument.Parse(json);
-        JsonElement root = doc.RootElement;
-
-        // מבנה התגובה של Gemini מכיל בדרך כלל "candidates" -> "content" -> "parts" -> "text"
-        if (!root.TryGetProperty("candidates", out JsonElement candidates) ||
-            candidates.ValueKind != JsonValueKind.Array ||
-            candidates.GetArrayLength() == 0)
-        {
-            return BadRequest("לא נמצאו מועמדים בתגובת Gemini.");
-        }
-
-        var firstCandidate = candidates[0];
-        if (!firstCandidate.TryGetProperty("content", out JsonElement candidateContent) ||
-            !candidateContent.TryGetProperty("parts", out JsonElement parts) ||
-            parts.ValueKind != JsonValueKind.Array ||
-            parts.GetArrayLength() == 0)
-        {
-            return BadRequest("לא ניתן למצוא חלקי תוכן בתגובת Gemini.");
-        }
-
-        // תוכן הטקסט בפועל נמצא במאפיין "text" של החלק הראשון
-        var generatedText = parts[0].TryGetProperty("text", out JsonElement textElement) ? textElement.GetString() : string.Empty;
-        generatedText = generatedText
-            .Replace("\"מלבן\"", "\"rectangle\"")
-            .Replace("\"עיגול\"", "\"circle\"")
-            .Replace("\"קו\"", "\"line\"")
-            .Replace("\"משולש\"", "\"triangle\"")
-            .Replace("שחור", "black")
-            .Replace("אדום", "red")
-            .Replace("ירוק", "green")
-            .Replace("כחול", "blue")
-            .Replace("צהוב", "yellow");
-        if (string.IsNullOrEmpty(generatedText))
-        {
-            return BadRequest("התוכן שנוצר ריק.");
-        }
-
+        // --- פיענוח התשובה ---
+        // מכיוון שאנו ב-JSON Mode, אין צורך בבדיקות וניקיונות מסורבלים
         try
         {
-            // ה-generatedText אמור להכיל את פקודות הציור בפורמט JSON.
-            // נסה לנתח אותו כמסמך JSON.
-            // ניקוי במידה והטקסט עטוף ב-```json ... ``` 
-            var cleanedJson = generatedText
-                .Replace("```json", "")
-                .Replace("```", "")
-                .Trim();
+            using var doc = JsonDocument.Parse(responseJson);
+            JsonElement root = doc.RootElement;
 
-            try
+            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
             {
-                var commands = JsonDocument.Parse(cleanedJson);
-                return Ok(commands.RootElement);
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine($"שגיאת ניתוח JSON: {ex.Message}");
-                Console.WriteLine($"ניסיון לנתח (אחרי ניקוי): {cleanedJson}");
-                return BadRequest("לא ניתן לנתח פקודות ציור מהתגובה של Gemini (גם אחרי ניקוי). ודא שהמודל מחזיר JSON חוקי.");
-            }
+                var textContent = candidates[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString();
 
+                // הטקסט הוא כבר מחרוזת JSON נקייה, נפענח אותה ונחזיר את התוכן
+                using var finalJsonDoc = JsonDocument.Parse(textContent!);
+                return Ok(finalJsonDoc.RootElement.Clone());
+            }
+            
+            return BadRequest("Invalid response structure from Gemini.");
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"שגיאת ניתוח JSON: {ex.Message}");
-            Console.WriteLine($"ניסיון לנתח: {generatedText}");
-            return BadRequest("לא ניתן לנתח פקודות ציור מהתגובה של Gemini. הטקסט שנוצר עשוי להיות JSON לא חוקי.");
+            return BadRequest($"Failed to parse JSON response: {ex.Message}. Response was: {responseJson}");
         }
+    }
+
+    /// <summary>
+    /// בונה את הפרומפט המתקדם עבור מודל השפה.
+    /// </summary>
+    private string BuildAdvancedPrompt(string userPrompt)
+    {
+        // כאן אנו מסבירים למודל בדיוק מה אנחנו רוצים, כולל דוגמה (Few-shot prompt)
+        return $@"
+You are a helpful assistant that translates natural language into a structured JSON object for a drawing application.
+
+Your task is to convert the user's request into a JSON object that strictly follows this schema:
+- The root object must contain 'canvasWidth' and 'canvasHeight' (use 500 for both).
+- It must contain an 'objects' array.
+- Each item in 'objects' is a logical group (like 'house' or 'person') and has a 'type' and a 'components' array.
+- Each item in 'components' is a primitive shape object.
+
+The available shapes and their properties are:
+1.  {{ ""shape"": ""rectangle"", ""color"": ""(css color)"", ""x"": (number), ""y"": (number), ""width"": (number), ""height"": (number) }}
+2.  {{ ""shape"": ""circle"", ""color"": ""(css color)"", ""cx"": (number), ""cy"": (number), ""radius"": (number) }}
+3.  {{ ""shape"": ""line"", ""color"": ""(css color)"", ""x1"": (number), ""y1"": (number), ""x2"": (number), ""y2"": (number) }}
+4.  {{ ""shape"": ""triangle"", ""color"": ""(css color)"", ""points"": [{{""x"":(number),""y"":(number)}}, {{""x"":(number),""y"":(number)}}, {{""x"":(number),""y"":(number)}}] }}
+
+IMPORTANT RULES:
+- The output MUST be a single, raw JSON object. Do NOT wrap it in markdown like ```json.
+- All keywords (""shape"", ""color"", etc.) and all color names must be in English.
+- Every shape must have explicit coordinates.
+
+EXAMPLE:
+User request: ""A simple house with a sun next to it""
+Your JSON output:
+{{
+  ""canvasWidth"": 500,
+  ""canvasHeight"": 500,
+  ""objects"": [
+    {{
+      ""type"": ""house"",
+      ""components"": [
+        {{ ""shape"": ""rectangle"", ""color"": ""brown"", ""x"": 150, ""y"": 250, ""width"": 200, ""height"": 150 }},
+        {{ ""shape"": ""triangle"", ""color"": ""red"", ""points"": [{{""x"":150,""y"":250}},{{""x"":350,""y"":250}},{{""x"":250,""y"":150}}] }}
+      ]
+    }},
+    {{
+      ""type"": ""sun"",
+      ""components"": [
+        {{ ""shape"": ""circle"", ""color"": ""gold"", ""cx"": 400, ""cy"": 100, ""radius"": 40 }}
+      ]
+    }}
+  ]
+}}
+
+Now, process the following user request:
+""{userPrompt}""
+";
     }
 }
 
