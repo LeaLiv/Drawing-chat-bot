@@ -56,7 +56,7 @@ export const useDrawingManager = () => {
         }
       } else {
         // אם המשתמש אנונימי, צור ציור חדש וריק
-        const anonymousDrawing = generateNewDrawing('ציור אנונימי');
+        const anonymousDrawing = generateNewDrawing('Drawing 1#');
         setDrawings([anonymousDrawing]);
         setCurrentDrawingId(anonymousDrawing.id);
       }
@@ -142,7 +142,7 @@ export const useDrawingManager = () => {
   };
 
   const createNewDrawing = () => {
-    const newDrawing = generateNewDrawing(`ציור #${drawings.length + 1}`);
+    const newDrawing = generateNewDrawing(`Drawing ${drawings.length + 1}#`);
     setDrawings(prev => [...prev, newDrawing]);
     setCurrentDrawingId(newDrawing.id);
   };

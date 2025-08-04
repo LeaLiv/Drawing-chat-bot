@@ -1,68 +1,248 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.inline-container>div,
+.inline-container {
+  display: inline-block !important;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif !important;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+.inline-container>button,
+#chat-input-area .rounded-lg {
+  margin-left: 5px;
+  border: none;
+  color: white;
+  border-radius: 3px;
+  padding: 5px;
 }
 
-body {
-  margin: 0;
+.center-container {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.center-container {
+  display: flex !important;
+  flex-direction: row-reverse;
+  height: 100vh;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+/* --- הגדרות כלליות --- */
+* {
+  box-sizing: border-box;
+}
+
+/* --- הקונטיינר הראשי --- */
+#app-container {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+  /* מציג את הצ'אט משמאל ואת הקנבס מימין */
+  height: calc(100vh - 55px);
+  width: 98vw;
+  /* 100% מרוחב המסך */
+  background-color: #f9fafb;
+  /* צבע רקע אפרפר */
+}
+
+/* --- פאנל הקנבס (הימני) --- */
+#canvas-panel {
+  flex: 1;
+  /* גורם לו לתפוס את כל שאר המקום הפנוי */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: solid #d1d5db 1px;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+/* --- פאנל הצ'אט (השמאלי) --- */
+#chat-panel {
+  width: 33.33%;
+  /* תופס שליש מרוחב המסך */
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  /* קו הפרדה בין הפאנלים */
+
+  /* הגדרות קריטיות למבנה הפנימי של הצ'אט */
+  display: flex;
+  flex-direction: column;
+  /* מסדר את הכותרת, ההודעות והקלט בטור */
+  height: 100%;
+  /* מוודא שהוא תופס את כל גובה האב */
+}
+
+/* --- הקו המפריד (אופציונלי, אם אתה רוצה קו עבה יותר) --- */
+#separator-line {
+  width: 1px;
+  background-color: #d1d5db;
+  /* צבע אפור לקו */
+}
+
+/* --- מבנה פנימי של פאנל הצ'אט --- */
+#chat-header {
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+#message-list {
+  flex: 1;
+  /* ✨ החלק החשוב ביותר: גורם לאזור ההודעות למלא את כל הגובה הפנוי */
+  overflow-y: auto;
+  /* מאפשר גלילה אם התוכן ארוך מדי */
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* רווח בין הודעות */
+}
+
+#chat-input-area {
+  padding: 0.5rem;
+  /* 8px */
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  display: flex;
+  gap: 8px;
+  /* יוצר רווח קטן בין השדה לכפתור */
+  width: 100%;
+}
+
+/* שיפורים קלים לאזור הקלט (לקוח מ-Tailwind) */
+#chat-input-area .flex-1 {
+  flex: 1;
+}
+
+#chat-input-area .border {
+  border: 1px solid #d1d5db;
+}
+
+#chat-input-area .p-2 {
+  padding: 0.5rem;
+}
+
+#send-button {
+  background-color: #22c55e !important;
+  font-weight: bold;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  padding-bottom: 8px !important;
+  padding-top: 8px !important;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+#chat-input-area .rounded-lg {
+  border-radius: 5px !important;
+}
+
+.input-field {
+  flex: 1;
+  /* ✨ הקסם קורה כאן: גורם לשדה לתפוס את כל המקום הפנוי */
+  color: black !important;
+}
+
+.input-container {
+  display: flex;
+  gap: 8px;
+  /* יוצר רווח קטן בין השדה לכפתור */
+  width: 100%;
+}
+/* מיכל הצ'אט */
+#chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-left: 1px solid #ddd;
+  font-family: Arial, sans-serif;
+}
+
+#chat-header {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* שורה של הודעה */
+.message-row {
+  display: flex;
+}
+
+.message-row.user {
+  justify-content: flex-end;
+}
+
+.message-row.bot {
+  justify-content: flex-start;
+}
+
+/* בועת הודעה */
+.message-bubble {
+  padding: 8px 12px;
+  border-radius: 15px;
+  max-width: 70%;
+  word-break: break-word;
+  font-size: 14px;
+}
+
+.message-bubble.user {
+  background-color: #d1f7c4; /* ירוק בהיר */
+  color: #000;
+  border-bottom-right-radius: 0;
+}
+
+.message-bubble.bot {
+  background-color: #ffffff; /* לבן */
+  color: #000;
+  border-bottom-left-radius: 0;
+  border: 1px solid #ddd; /* מוסיף מסגרת עדינה שתראה נקי */
+}
+.font-semibold{
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-size: 20px;
+}
+
+/* אזור קלט */
+#chat-input-area {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+#chat-input-area .input-container {
+  display: flex;
+  gap: 8px;
+}
+
+#chat-input-area input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+#chat-input-area button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#chat-input-area button:disabled {
+  background-color: gray;
+  cursor: default;
 }

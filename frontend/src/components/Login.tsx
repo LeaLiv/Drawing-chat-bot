@@ -15,8 +15,8 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md text-center">
+    <div className='inline-container'>
+      <div >
         <h1 className="text-2xl font-bold mb-4">ברוכים הבאים לבוט הציור</h1>
         <p className="mb-6 text-gray-600">התחבר כדי לשמור ולטעון את הציורים שלך.</p>
         <div className="flex gap-2">

@@ -1,6 +1,5 @@
 // src/components/DrawingControls.tsx
 import React from 'react';
-import { Save, Plus, RotateCcw, Trash2, RotateCw, LogOut, LogIn } from 'lucide-react';
 import type { Drawing } from '../types/drawing';
 
 // The User type from AuthContext
@@ -35,19 +34,18 @@ export const DrawingControls: React.FC<DrawingControlsProps> = ({
   onNewDrawing,
   onSave,
   onUndo,
-  onRedo,
   onClear,
   canUndo,
-  canRedo
 }) => {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white shadow-sm border-b">
-      <div className="flex items-center gap-3">
+    // className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white shadow-sm border-b"className="flex items-center gap-3"
+    <div style={{ backgroundColor: '#f3f4f6', padding: '7px' }}>
+      <div className='inline-container'>
         {user && (
           <select
             value={selectedDrawingId}
             onChange={(e) => onDrawingSelect(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          // className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
           >
             {drawings.map((drawing) => (
               <option key={drawing.id} value={drawing.id}>
@@ -56,34 +54,38 @@ export const DrawingControls: React.FC<DrawingControlsProps> = ({
             ))}
           </select>
         )}
-        <button onClick={onNewDrawing} className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-          <Plus size={16} /> New
+        <button onClick={onNewDrawing}
+          style={{ background: '#3b82f6' }}
+        // className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          + New Drawing
         </button>
-        <button onClick={onUndo} disabled={!canUndo} className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-300">
-          <RotateCcw size={16} /> Undo
+        <button onClick={onSave} style={{ background: '#22c55e' }}>
+          Send
         </button>
-        <button onClick={onRedo} disabled={!canRedo} className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-300">
-          <RotateCw size={16} /> Redo
+        <button onClick={onUndo} disabled={!canUndo} style={{ background: '#eab308' }}>
+          Undo
         </button>
-        <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-          <Trash2 size={16} /> Clear
+        <button onClick={onClear} style={{ background: '#ef4444' }}>
+          Clear
         </button>
-        <button onClick={onSave} className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">
-          <Save size={16} /> Save
+        <button onClick={onSave} style={{ background: '#a855f7' }}>
+          Save
         </button>
+
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className='inline-container' >
         {user ? (
           <>
             <span className="font-semibold text-gray-700">שלום, {user.name}</span>
-            <button onClick={onLogout} className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-500">
-              <LogOut size={16} /> התנתק
+            <button onClick={onLogout} >
+              התנתק
             </button>
           </>
         ) : (
-          <button onClick={onLoginClick} className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md">
-            <LogIn size={16} /> התחבר כדי לשמור
+          <button onClick={onLoginClick} >
+            התחבר כדי לשמור
           </button>
         )}
       </div>

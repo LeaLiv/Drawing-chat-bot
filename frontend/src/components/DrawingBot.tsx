@@ -1,5 +1,5 @@
 // src/components/DrawingBot.tsx
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas } from "./DrawingCanvas";
 import { DrawingControls } from "./DrawingControls";
 import { useAuth } from "../context/AuthContext";
@@ -8,8 +8,8 @@ import { useDrawingManager } from "../hooks/useDrawingState";
 
 export default function DrawingBot() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  
-  const { user, logout } = useAuth(); 
+
+  const { user, logout } = useAuth();
   const { drawings, currentDrawingId, addElement, ...manager } = useDrawingManager();
 
   const handleSaveClick = () => {
@@ -27,8 +27,8 @@ export default function DrawingBot() {
   return (
     <>
       {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />}
-      
-      <div className="flex flex-col h-screen font-sans bg-gray-50">
+
+      <div >
         <DrawingControls
           user={user}
           onLogout={logout}
@@ -44,8 +44,8 @@ export default function DrawingBot() {
           canUndo={manager.canUndo}
           canRedo={manager.canRedo}
         />
-        
-        <DrawingApplicationContent 
+
+        <DrawingApplicationContent
           addElement={addElement}
           isLoading={manager.isLoading}
           drawingData={manager.drawingData}
@@ -62,49 +62,76 @@ const DrawingApplicationContent = ({ addElement, isLoading, drawingData }: any) 
 
   const handleAddElement = async () => {
     if (!prompt.trim()) return;
-    
+
     const currentPrompt = prompt;
     setMessages(prev => [...prev, { role: 'user', text: currentPrompt }]);
     setPrompt("");
-    
+
     // קוראים לפונקציה מההוק כדי להוסיף את האובייקט
     await addElement(currentPrompt);
 
     // מוסיפים תגובת בוט אחרי שהפעולה הסתיימה
     setMessages(prev => [...prev, { role: 'bot', text: 'ציירתי את זה!' }]);
   };
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
   return (
-    <div className="flex flex-1 overflow-hidden">
-      {/* 🔽 **תיקון: פאנל שמאלי עם היסטוריית צ'אט וקלט** 🔽 */}
-      <div className="w-1/3 flex flex-col border-r bg-white">
-          <div className="p-3 border-b">
-              <h2 className="font-semibold">הצ'אט שלך עם הבוט </h2>
-          </div>
-          <div className="flex-1 p-3 overflow-y-auto space-y-4">
-              {messages.map((msg, i) => (
-                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`p-3 rounded-lg max-w-xs text-sm ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                          {msg.text}
-                      </div>
-                  </div>
-              ))}
-          </div>
-          <div className="p-2 border-t bg-gray-50">
-              <div className="flex gap-2">
-                  <input value={prompt} onChange={(e) => setPrompt(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAddElement()}
-                      placeholder="כתוב הודעה..." className="flex-1 border p-2 rounded-lg" disabled={isLoading} />
-                  <button onClick={handleAddElement} className="bg-green-500 text-white px-4 rounded-lg font-semibold disabled:bg-gray-400" disabled={isLoading}>
-                      {isLoading ? '...' : 'שלח'}
-                  </button>
+    <div id="app-container">
+
+      {/* פאנל ימני (קנבס) */}
+      <div id="canvas-panel">
+        <Canvas drawingData={drawingData} />
+      </div>
+
+      {/* קו מפריד */}
+      <div id="separator-line"></div>
+
+      {/* פאנל שמאלי (צ'אט) */}
+      <div id="chat-panel">
+
+        <div id="chat-header">
+          <h2 className="font-semibold">הצ'אט שלך עם הבוט</h2>
+        </div>
+
+        <div id="message-list">
+          {messages.map((msg, i) => (
+            <div key={i} className={`message-row ${msg.role}`}>
+              <div className={`message-bubble ${msg.role}`}>
+                {msg.text}
               </div>
+            </div>
+          ))}
+           <div ref={messagesEndRef} />
+        </div>
+
+
+
+        <div id="chat-input-area">
+          <div className="flex gap-2 input-container">
+            <input
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddElement()}
+              placeholder="כתוב הודעה..."
+              className="flex-1 border p-2 rounded-lg input-field"
+              disabled={isLoading}
+            />
+            <button
+              id="send-button"
+              onClick={handleAddElement}
+              className="bg-green-500 text-white px-4 rounded-lg font-semibold disabled:bg-gray-400"
+              disabled={isLoading}
+            >
+              {isLoading ? '...' : 'שלח'}
+            </button>
           </div>
+        </div>
+
       </div>
-      
-      {/* פאנל ימני עם הקנבס */}
-      <div className="flex-1 p-4 flex items-center justify-center bg-gray-100">
-           <Canvas drawingData={drawingData} />
-      </div>
+
     </div>
   );
 }

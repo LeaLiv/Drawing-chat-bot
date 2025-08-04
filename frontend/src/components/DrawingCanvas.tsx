@@ -90,7 +90,7 @@ export const Canvas: React.FC<CanvasProps> = ({ drawingData }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="border-2 border-gray-300 bg-white rounded-lg shadow-lg"
+      // className="border-2 border-gray-300 bg-white rounded-lg shadow-lg"
     />
   );
 };

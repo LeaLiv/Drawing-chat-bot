@@ -25,10 +25,8 @@ public class DrawingController : ControllerBase
         }
 
         var httpClient = _httpClientFactory.CreateClient();
-        // מודל לדוגמה. ודא שאתה משתמש במודל העדכני והמתאים ביותר לצרכיך.
         var geminiApiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={apiKey}";
 
-        // --- הנדסת הפרומפט המשופרת ---
         var systemInstruction = BuildAdvancedPrompt(request.Prompt);
 
         var body = new
@@ -110,6 +108,7 @@ IMPORTANT RULES:
 - The output MUST be a single, raw JSON object. Do NOT wrap it in markdown like ```json.
 - All keywords (""shape"", ""color"", etc.) and all color names must be in English.
 - Every shape must have explicit coordinates.
+-please locate the object in the rational location (for example sky only in small part of the top, grass or grounde only in small part of bottom,person in the side, tree in other side etc. )
 
 EXAMPLE:
 User request: ""A simple house with a sun next to it""
