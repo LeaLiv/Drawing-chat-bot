@@ -1,10 +1,10 @@
 // src/components/DrawingBot.tsx
 import { useEffect, useRef, useState } from "react";
-import { Canvas } from "./DrawingCanvas";
 import { DrawingControls } from "./DrawingControls";
 import { useAuth } from "../context/AuthContext";
 import { LoginModal } from "./LoginModal";
 import { useDrawingManager } from "../hooks/useDrawingState";
+import { Canvas } from "./Canvas";
 
 export default function DrawingBot() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
