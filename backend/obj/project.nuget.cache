@@ -1,6 +1,10 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "4v1CzUmIy0k=",
+=======
+  "dgSpecHash": "+6VRr51HWDc=",
+>>>>>>> c5047b1343a63b46c714d2a236b3dad901f4d4b2
   "success": true,
   "projectFilePath": "D:\\SkillZ-Home-ex\\backend\\backend.csproj",
   "expectedPackageFiles": [

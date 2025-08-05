@@ -44,8 +44,10 @@ public class DrawingController : ControllerBase
         };
 
         var jsonBody = JsonSerializer.Serialize(body);
+        var jsonBody = JsonSerializer.Serialize(body);
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
+        var geminiApiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b-latest:generateContent?key={apiKey}";
         var response = await httpClient.PostAsync(geminiApiUrl, content);
         var responseJson = await response.Content.ReadAsStringAsync();
 
@@ -77,7 +79,7 @@ public class DrawingController : ControllerBase
             
             return BadRequest("Invalid response structure from Gemini.");
         }
-        catch (JsonException ex)
+        catch (Exception ex)
         {
             return BadRequest($"Failed to parse JSON response: {ex.Message}. Response was: {responseJson}");
         }

@@ -66,6 +66,7 @@ D:\SkillZ-Home-ex\backend\obj\Debug\net9.0\refint\backend.dll
 D:\SkillZ-Home-ex\backend\obj\Debug\net9.0\backend.pdb
 D:\SkillZ-Home-ex\backend\obj\Debug\net9.0\backend.genruntimeconfig.cache
 D:\SkillZ-Home-ex\backend\obj\Debug\net9.0\ref\backend.dll
+<<<<<<< HEAD
 d:\SkillZ-Home-ex\backend\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.dll
 d:\SkillZ-Home-ex\backend\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 d:\SkillZ-Home-ex\backend\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Relational.dll
@@ -167,3 +168,5 @@ D:\SkillZ-Home-ex\backend\bin\Debug\net9.0\ru\Microsoft.CodeAnalysis.Workspaces.
 D:\SkillZ-Home-ex\backend\bin\Debug\net9.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 D:\SkillZ-Home-ex\backend\bin\Debug\net9.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 D:\SkillZ-Home-ex\backend\bin\Debug\net9.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+=======
+>>>>>>> c5047b1343a63b46c714d2a236b3dad901f4d4b2
